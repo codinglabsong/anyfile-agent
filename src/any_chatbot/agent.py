@@ -1,5 +1,6 @@
 import getpass
 import os
+import random
 from dotenv import load_dotenv
 from pathlib import Path
 
@@ -41,7 +42,6 @@ print("Wrote graph.png")
 
 # PROMPT
 # specify an ID for the thread
-import random
 # config = {"configurable": {"thread_id": "abc123"}}
 config = {"configurable": {"thread_id": random.random()}}
 
@@ -57,4 +57,3 @@ for event in agent_executor.stream(
     config=config,
 ):
     event["messages"][-1].pretty_print()
-

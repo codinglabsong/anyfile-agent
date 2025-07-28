@@ -11,6 +11,7 @@ load_dotenv()
 BASE = Path(__file__).parent.parent.parent
 DATA = BASE / "data"
 
+
 def index_text_docs(
     data_pth: Path = DATA,
 ):
@@ -32,7 +33,7 @@ def index_text_docs(
             "**/*.jpeg",
             "**/*.tiff",
         ],
-        loader_cls=UnstructuredFileLoader
+        loader_cls=UnstructuredFileLoader,
     )
     print(f"Loading files from {data_pth}")
     docs = loader.load()
@@ -40,10 +41,10 @@ def index_text_docs(
 
     # Split the texts
     text_splitter = RecursiveCharacterTextSplitter(
-        chunk_size=1000, 
-        chunk_overlap=200, 
+        chunk_size=1000,
+        chunk_overlap=200,
         add_start_index=True,
-        separators=["\n\n", "\n", " ", ""],  
+        separators=["\n\n", "\n", " ", ""],
     )
     all_splits = text_splitter.split_documents(docs)
     print(len(all_splits))
@@ -51,8 +52,5 @@ def index_text_docs(
     # index the docs
     ids = vector_store.add_documents(documents=all_splits)
     print(len(ids))
-    
+
     return embeddings, vector_store
-
-
-
