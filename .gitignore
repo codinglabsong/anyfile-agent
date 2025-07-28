@@ -18,6 +18,7 @@ wandb/
 
 # datasets
 data/
+old-data/
 
 # outputs
 outputs/

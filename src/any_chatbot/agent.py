@@ -46,10 +46,9 @@ import random
 config = {"configurable": {"thread_id": random.random()}}
 
 input_message = (
-    "First retrieve what the revenue for Nike in 2023 was using the functional call.\n\n"
-    "Once you get the answer, do a second retrieve to tell me which distribution centers nike have.\n\n"
-    "Once you get the second answer,, tell me how many employees nike has. You can retreive MULTIPLE TIMES\n\n"
-    "Base your answers only on the retrieved information thorugh the functional call you have."
+    "What is the content of the image?\n\n"
+    "When you don't know while files the user is talking about, use the functional call to retrieve what data is available with a general prompt.\n\n"
+    "Base your answers only on the retrieved information thorugh the functional call you have. You can retreive MULTIPLE TIMES"
 )
 
 for event in agent_executor.stream(

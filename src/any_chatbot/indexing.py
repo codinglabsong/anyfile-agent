@@ -27,12 +27,16 @@ def index_text_docs(
             "**/*.md",
             "**/*.html",
             "**/*.txt",
+            "**/*.png",
+            "**/*.jpg",
+            "**/*.jpeg",
+            "**/*.tiff",
         ],
         loader_cls=UnstructuredFileLoader
     )
-    print(f"Loading docs from {data_pth}")
+    print(f"Loading files from {data_pth}")
     docs = loader.load()
-    print(f"Loaded {len(docs)} docs")
+    print(f"Loaded {len(docs)} files")
 
     # Split the texts
     text_splitter = RecursiveCharacterTextSplitter(
