@@ -7,3 +7,4 @@ pypdf
 python-dotenv
 pinecone
 langgraph
+unstructured[pdf,docx,pptx,md]
