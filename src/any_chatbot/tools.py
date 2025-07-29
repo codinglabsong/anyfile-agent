@@ -1,7 +1,5 @@
 from typing import Tuple, List, Literal
 from pathlib import Path
-from enum import Enum
-from typing_extensions import Annotated
 
 from langchain_core.tools import tool
 from langchain.vectorstores.base import VectorStore
@@ -13,45 +11,25 @@ BASE = Path(__file__).parent.parent.parent
 DATA = BASE / "data"
 
 
-class SourceTag(str, Enum):
-    TEXT = "text_chunk"
-    IMAGE = "image_text"
-    TABLE = "table_summary"
-
-
 def initialize_retrieve_tool(vector_store: VectorStore):
     @tool(
         description=(
             """
-        Semantic search over your docs. Valid tags are
-        "text_chunk", "image_text", and "table_summary".
-        """
+            Semantic search over your docs. ONLY valid tags are
+            "text_chunk" (chunks over pdf, word, txt, etc),
+            "image_text" (texts extracted through OCR per image), or
+            "table_summary" (summary cards of excel sheets or csv files)
+            """
         ),
         response_format="content_and_artifact",
     )
     def retrieve(
-        query: str,
-        tag: Annotated[
-            Literal["text_chunk", "image_text", "table_summary"],
-            """
-            Select between
-            "text_chunk" (chunks over pdf, word, txt, etc),
-            "image_text" (texts extracted through OCR per image), or
-            "table_summary" (summary cards of excel sheets or csv files)
-            """,
-        ],
+        query: str, tag: Literal["text_chunk", "image_text", "table_summary"]
     ) -> Tuple[str, List[Document]]:
-        """
-        Args:
-          query: keywords or natural-language question.
-          tag: which subset to search ("text_chunk", "image_text", "table_summary").
-        Returns:
-          (summary_string, list_of_Documents)
-        """
         retrieved_docs = vector_store.similarity_search(
             query,
-            filter={"source_type": tag},
             k=2,
+            filter=lambda doc: doc.metadata.get("source_type") == tag,
         )
         serialized = "\n\n".join(
             (f"Source: {doc.metadata}\nContent: {doc.page_content}")
