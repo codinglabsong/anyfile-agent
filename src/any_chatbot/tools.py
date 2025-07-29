@@ -28,7 +28,7 @@ def initialize_retrieve_tool(vector_store: VectorStore):
     ) -> Tuple[str, List[Document]]:
         retrieved_docs = vector_store.similarity_search(
             query,
-            k=2,
+            k=5,
             filter={"source_type": tag},
         )
         serialized = "\n\n".join(
