@@ -37,16 +37,21 @@ def parse_args() -> argparse.Namespace:
         help="Your input to agent",
     )
     p.add_argument(
-        "--data_dir",
-        type=Path,
-        default=BASE / "data",
-        help="Path to data dir where your files are uploaded",
+        "--load_data",
+        action="store_true",
+        help="If set, (re)load and process all data files, rebuilding FAISS and DuckDB. If not set, just use existing data.",
     )
     p.add_argument(
         "--thread_id",
         type=str,
         default=str(random.random()),
         help="Your conversation history ID. Different IDs save different chat histories with agent",
+    )
+    p.add_argument(
+        "--data_dir",
+        type=Path,
+        default=BASE / "data",
+        help="Path to data dir where your files are uploaded",
     )
     p.add_argument(
         "--outputs_dir",
@@ -67,7 +72,9 @@ def main() -> None:
     cfg = parse_args()
     load_environ_vars()
     # INDEXING
-    _, vector_store = embed_and_index_all_docs(cfg.data_dir, cfg.database_dir)
+    _, vector_store = embed_and_index_all_docs(
+        cfg.data_dir, cfg.database_dir, load_data=cfg.load_data
+    )
 
     # BUILD LLM
     llm = init_chat_model("gemini-2.0-flash", model_provider="google_genai")

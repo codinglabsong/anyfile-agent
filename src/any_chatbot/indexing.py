@@ -189,34 +189,39 @@ def build_duckdb_and_summary_cards(
     return summary_cards
 
 
-def reset_faiss_index(index_path: Path):
-    if index_path.exists():
-        print("Reseting previous index...")
-        shutil.rmtree(index_path)
-
-
 def embed_and_index_all_docs(
     data_dir: Path = DATA,
     db_path: Path = DATA / "generated_db" / "csv_excel_to_db.duckdb",
     index_path: Path = DATA / "generated_db" / "faiss_index",
+    load_data: bool = False,
 ):
-    # delete old FAISS index if it exists
-    reset_faiss_index(index_path)
-
     # load embeedings and vector store
     embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001")
 
-    # LOAD AND SPLIT TEXT DOCS
-    text_chunks = load_and_split_text_docs(data_dir)
-    # LOAD IMAGES (OCR converts image -> text)
-    image_text_docs = load_image_docs_as_text(data_dir)
-    # LOAD AND SPLIT CSV/EXCEL DOCS
-    summary_cards = build_duckdb_and_summary_cards(data_dir, db_path)
+    if not load_data and index_path.exists():
+        # load existing FAISS index
+        vector_store = FAISS.load_local(
+            index_path, embeddings, allow_dangerous_deserialization=True
+        )
+        print("Loaded existing FAISS index and database.")
+    else:
+        # delete old FAISS index if it exists
+        if index_path.exists():
+            print("Reseting previous index...")
+            shutil.rmtree(index_path)
 
-    # vector_store.add_documents(text_chunks + image_text_docs + summary_cards)
-    vector_store = FAISS.from_documents(
-        text_chunks + image_text_docs + summary_cards, embeddings
-    )
-    vector_store.save_local(index_path)
+        # LOAD AND SPLIT TEXT DOCS
+        text_chunks = load_and_split_text_docs(data_dir)
+        # LOAD IMAGES (OCR converts image -> text)
+        image_text_docs = load_image_docs_as_text(data_dir)
+        # LOAD AND SPLIT CSV/EXCEL DOCS
+        summary_cards = build_duckdb_and_summary_cards(data_dir, db_path)
+
+        # vector_store.add_documents(text_chunks + image_text_docs + summary_cards)
+        vector_store = FAISS.from_documents(
+            text_chunks + image_text_docs + summary_cards, embeddings
+        )
+        vector_store.save_local(index_path)
+        print("Built and saved new FAISS index.")
 
     return embeddings, vector_store
