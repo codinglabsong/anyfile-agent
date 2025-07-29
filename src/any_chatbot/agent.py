@@ -8,7 +8,7 @@ from langgraph.prebuilt import create_react_agent
 from langgraph.checkpoint.memory import MemorySaver
 from langchain.chat_models import init_chat_model
 
-from any_chatbot.indexing import index_text_docs
+from any_chatbot.indexing import embed_and_index_all_docs
 from any_chatbot.tools import initialize_retrieve_tool
 
 load_dotenv()
@@ -18,7 +18,7 @@ DATA = BASE / "data"
 OUTPUTS = BASE / "outputs"
 
 # INDEXING
-embeddings, vector_store = index_text_docs(DATA)
+embeddings, vector_store = embed_and_index_all_docs(DATA)
 
 # BUILD LLM
 if not os.environ.get("GOOGLE_API_KEY"):
@@ -38,15 +38,21 @@ png_bytes = agent_executor.get_graph().draw_mermaid_png()
 # save to file
 with open(OUTPUTS / "graph.png", "wb") as f:
     f.write(png_bytes)
-print("Wrote graph.png")
+print("Created graph.png")
 
 # PROMPT
 # specify an ID for the thread
 # config = {"configurable": {"thread_id": "abc123"}}
 config = {"configurable": {"thread_id": random.random()}}
 
+# input_message = (
+#     "What is the content of the image?\n\n"
+#     "When you don't know while files the user is talking about, use the functional call to retrieve what data is available with a general prompt.\n\n"
+#     "Base your answers only on the retrieved information thorugh the functional call you have. You can retreive MULTIPLE TIMES"
+# )
+
 input_message = (
-    "What is the content of the image?\n\n"
+    "What colums does the excel have? once you found the answer, tell me there types too.\n\n"
     "When you don't know while files the user is talking about, use the functional call to retrieve what data is available with a general prompt.\n\n"
     "Base your answers only on the retrieved information thorugh the functional call you have. You can retreive MULTIPLE TIMES"
 )

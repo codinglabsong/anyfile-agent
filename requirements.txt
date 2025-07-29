@@ -8,3 +8,6 @@ python-dotenv
 pinecone
 langgraph
 unstructured[pdf,docx,pptx,md,image]
+duckdb
+duckdb-engine
+openpyxl
