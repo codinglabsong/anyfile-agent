@@ -11,3 +11,5 @@ unstructured[pdf,docx,pptx,md,image]
 duckdb
 duckdb-engine
 openpyxl
+faiss-cpu
+langgraph-checkpoint-sqlite

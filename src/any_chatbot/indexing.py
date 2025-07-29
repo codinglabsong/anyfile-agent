@@ -2,10 +2,11 @@ import os
 import re
 import pandas as pd
 import duckdb
+import shutil
 from dotenv import load_dotenv
 from pathlib import Path
 
-from langchain_core.vectorstores import InMemoryVectorStore
+from langchain_community.vectorstores import FAISS
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
 from langchain_community.document_loaders import DirectoryLoader, UnstructuredFileLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
@@ -188,12 +189,22 @@ def build_duckdb_and_summary_cards(
     return summary_cards
 
 
+def reset_faiss_index(index_path: Path):
+    if index_path.exists():
+        print("Reseting previous index...")
+        shutil.rmtree(index_path)
+
+
 def embed_and_index_all_docs(
-    data_dir: Path = DATA, db_path: Path = DATA / "csv_excel_to_db" / "my_data.duckdb"
+    data_dir: Path = DATA,
+    db_path: Path = DATA / "generated_db" / "csv_excel_to_db.duckdb",
+    index_path: Path = DATA / "generated_db" / "faiss_index",
 ):
+    # delete old FAISS index if it exists
+    reset_faiss_index(index_path)
+
     # load embeedings and vector store
     embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001")
-    vector_store = InMemoryVectorStore(embeddings)
 
     # LOAD AND SPLIT TEXT DOCS
     text_chunks = load_and_split_text_docs(data_dir)
@@ -202,5 +213,10 @@ def embed_and_index_all_docs(
     # LOAD AND SPLIT CSV/EXCEL DOCS
     summary_cards = build_duckdb_and_summary_cards(data_dir, db_path)
 
-    vector_store.add_documents(text_chunks + image_text_docs + summary_cards)
+    # vector_store.add_documents(text_chunks + image_text_docs + summary_cards)
+    vector_store = FAISS.from_documents(
+        text_chunks + image_text_docs + summary_cards, embeddings
+    )
+    vector_store.save_local(index_path)
+
     return embeddings, vector_store

@@ -29,7 +29,7 @@ def initialize_retrieve_tool(vector_store: VectorStore):
         retrieved_docs = vector_store.similarity_search(
             query,
             k=2,
-            filter=lambda doc: doc.metadata.get("source_type") == tag,
+            filter={"source_type": tag},
         )
         serialized = "\n\n".join(
             (f"Source: {doc.metadata}\nContent: {doc.page_content}")

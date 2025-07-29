@@ -1,73 +1,111 @@
-import getpass
 import os
+import argparse
 import random
+import sqlite3
 from dotenv import load_dotenv
 from pathlib import Path
 
 from langgraph.prebuilt import create_react_agent
-from langgraph.checkpoint.memory import MemorySaver
+from langgraph.checkpoint.sqlite import SqliteSaver
 from langchain.chat_models import init_chat_model
 
 from any_chatbot.indexing import embed_and_index_all_docs
 from any_chatbot.tools import initialize_retrieve_tool, initialize_sql_toolkit
 from any_chatbot.prompts import system_message
+from any_chatbot.utils import load_environ_vars
 
 load_dotenv()
 
 BASE = Path(__file__).parent.parent.parent
-DATA = BASE / "data"
-OUTPUTS = BASE / "outputs"
-DATABASE = DATA / "csv_excel_to_db" / "my_data.duckdb"
 
-# INDEXING
-embeddings, vector_store = embed_and_index_all_docs(DATA, DATABASE)
 
-# BUILD LLM
-if not os.environ.get("GOOGLE_API_KEY"):
-    os.environ["GOOGLE_API_KEY"] = getpass.getpass("Enter API key for Google Gemini: ")
-llm = init_chat_model("gemini-2.0-flash", model_provider="google_genai")
+def parse_args() -> argparse.Namespace:
+    """Parse command-line arguments for training and evaluation."""
+    p = argparse.ArgumentParser()
 
-# LOAD TOOLS
-retrieve_tool = initialize_retrieve_tool(vector_store)
-sql_tools = initialize_sql_toolkit(llm, DATABASE)
+    p.add_argument(
+        "--ask",
+        type=str,
+        default=(
+            "What kinds (images, text docs, or excel sheets) are available in the documents I have provided to you? Use the functional call to retrieve information for each type first.\n\n"
+            # "What colums does the excel have? once you found the answer, tell me there types too.\n\n"
+            # "Once you have that answer, I want you to calculate the median for each column.\n\n"
+            "When you don't know while files the user is talking about, use the functional call to retrieve what data is available with a general prompt.\n\n"
+            "You can refine your semantic search queries and try multiple times with different queries until you resonably determine the data is not available on the given documents.\n\n"
+            "Base your answers only on the retrieved information thorugh the functional call you have. You can retreive MULTIPLE TIMES"
+        ),
+        help="Your input to agent",
+    )
+    p.add_argument(
+        "--data_dir",
+        type=Path,
+        default=BASE / "data",
+        help="Path to data dir where your files are uploaded",
+    )
+    p.add_argument(
+        "--thread_id",
+        type=str,
+        default=str(random.random()),
+        help="Your conversation history ID. Different IDs save different chat histories with agent",
+    )
+    p.add_argument(
+        "--outputs_dir",
+        type=Path,
+        default=BASE / "outputs",
+        help="Path to output dir where image of agent architecture is saved",
+    )
+    p.add_argument(
+        "--database_dir",
+        type=Path,
+        default=BASE / "data" / "generated_db" / "csv_excel_to_db.duckdb",
+        help="Path to database dir where the sql version of CSV/EXCEL files are stored",
+    )
+    return p.parse_args()
 
-# BUILD AGENT
-# build checkpointer
-memory = MemorySaver()
-# build agent
-agent_executor = create_react_agent(
-    llm, [retrieve_tool, *sql_tools], prompt=system_message, checkpointer=memory
-)
-# save architecture graph image
-png_bytes = agent_executor.get_graph().draw_mermaid_png()
-# save to file
-with open(OUTPUTS / "graph.png", "wb") as f:
-    f.write(png_bytes)
-print("Created graph.png")
 
-# PROMPT
-# specify an ID for the thread
-# config = {"configurable": {"thread_id": "abc123"}}
-config = {"configurable": {"thread_id": random.random()}}
+def main() -> None:
+    cfg = parse_args()
+    load_environ_vars()
+    # INDEXING
+    _, vector_store = embed_and_index_all_docs(cfg.data_dir, cfg.database_dir)
 
-# input_message = (
-#     "What is the content of the image?\n\n"
-#     "When you don't know while files the user is talking about, use the functional call to retrieve what data is available with a general prompt.\n\n"
-#     "Base your answers only on the retrieved information thorugh the functional call you have. You can retreive MULTIPLE TIMES"
-# )
+    # BUILD LLM
+    llm = init_chat_model("gemini-2.0-flash", model_provider="google_genai")
 
-input_message = (
-    "What kinds (images, text docs, or excel sheets) are available in the documents I have provided to you? Use the functional call to retrieve information for each type first.\n\n"
-    # "What colums does the excel have? once you found the answer, tell me there types too.\n\n"
-    # "Once you have that answer, I want you to calculate the median for each column.\n\n"
-    "When you don't know while files the user is talking about, use the functional call to retrieve what data is available with a general prompt.\n\n"
-    "You can refine your semantic search queries and try multiple times with different queries until you resonably determine the data is not available on the given documents.\n\n"
-    "Base your answers only on the retrieved information thorugh the functional call you have. You can retreive MULTIPLE TIMES"
-)
+    # LOAD TOOLS
+    retrieve_tool = initialize_retrieve_tool(vector_store)
+    sql_tools = initialize_sql_toolkit(llm, cfg.database_dir)
 
-for event in agent_executor.stream(
-    {"messages": [{"role": "user", "content": input_message}]},
-    stream_mode="values",
-    config=config,
-):
-    event["messages"][-1].pretty_print()
+    # BUILD AGENT
+    # build persistent checkpointer
+    con = sqlite3.connect(
+        cfg.data_dir / "generated_db" / "agent_history.db", check_same_thread=False
+    )
+    memory = SqliteSaver(con)
+    # build agent
+    agent_executor = create_react_agent(
+        llm, [retrieve_tool, *sql_tools], prompt=system_message, checkpointer=memory
+    )
+    # save architecture graph image
+    png_bytes = agent_executor.get_graph().draw_mermaid_png()
+    # ensure the output folder exists
+    os.makedirs(cfg.outputs_dir, exist_ok=True)
+    # save to file
+    with open(cfg.outputs_dir / "graph.png", "wb") as f:
+        f.write(png_bytes)
+    print("Created graph.png")
+
+    # PROMPT
+    # specify an ID for the thread
+    config = {"configurable": {"thread_id": cfg.thread_id}}
+    # stream conversation
+    for event in agent_executor.stream(
+        {"messages": [{"role": "user", "content": cfg.ask}]},
+        stream_mode="values",
+        config=config,
+    ):
+        event["messages"][-1].pretty_print()
+
+
+if __name__ == "__main__":
+    main()
