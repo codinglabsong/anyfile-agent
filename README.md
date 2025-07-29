@@ -7,3 +7,5 @@ sudo apt install -y tesseract-ocr libtesseract-dev
 
 
 DuckDB restrictions for agent to only SELECT/PRAGMA queries. No destructive queries.
+
+Take time to load first time docs
