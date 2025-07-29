@@ -1,4 +1,3 @@
-import os
 import argparse
 import random
 import sqlite3
@@ -54,12 +53,6 @@ def parse_args() -> argparse.Namespace:
         help="Path to data dir where your files are uploaded",
     )
     p.add_argument(
-        "--outputs_dir",
-        type=Path,
-        default=BASE / "outputs",
-        help="Path to output dir where image of agent architecture is saved",
-    )
-    p.add_argument(
         "--database_dir",
         type=Path,
         default=BASE / "data" / "generated_db" / "csv_excel_to_db.duckdb",
@@ -93,14 +86,6 @@ def main() -> None:
     agent_executor = create_react_agent(
         llm, [retrieve_tool, *sql_tools], prompt=system_message, checkpointer=memory
     )
-    # save architecture graph image
-    png_bytes = agent_executor.get_graph().draw_mermaid_png()
-    # ensure the output folder exists
-    os.makedirs(cfg.outputs_dir, exist_ok=True)
-    # save to file
-    with open(cfg.outputs_dir / "graph.png", "wb") as f:
-        f.write(png_bytes)
-    print("Created graph.png")
 
     # PROMPT
     # specify an ID for the thread
