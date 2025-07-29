@@ -41,7 +41,7 @@ def load_and_split_text_docs(data_dir):
         glob=globs,
         loader_cls=UnstructuredFileLoader,
     )
-    logger.info(f"Loading text files from {data_dir}")
+    logger.info("Loading text files...")
     docs = loader.load()
     logger.info(f"Loaded {len(docs)} text files")
     # split
@@ -79,7 +79,7 @@ def load_image_docs_as_text(data_dir):
         glob=globs,
         loader_cls=UnstructuredFileLoader,
     )
-    logger.info(f"Loading images from {data_dir}")
+    logger.info("Loading images' OCR texts...")
     image_text_docs = loader.load()
     logger.info(f"Loaded {len(image_text_docs)} image files")
     # tag
@@ -107,7 +107,8 @@ def build_duckdb_and_summary_cards(
     if not any(next(data_dir.rglob(p), None) for p in patterns):
         logger.info(f"No CSV or Excel files found under {data_dir}; skipping.")
         return summary_cards
-    logger.info(f"Detected CSV or Excel files under {data_dir}")
+    logger.info(f"Detected CSV/Excel files under {data_dir}")
+    logger.info("Loading CSV/Excel files...")
     # ensure the DB folder exists
     os.makedirs(db_path.parent, exist_ok=True)
     # empty the entire DB

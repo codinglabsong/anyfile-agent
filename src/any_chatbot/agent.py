@@ -1,6 +1,6 @@
 import argparse
-import random
 import sqlite3
+import logging
 from pathlib import Path
 
 from langgraph.prebuilt import create_react_agent
@@ -12,6 +12,8 @@ from any_chatbot.tools import initialize_retrieve_tool, initialize_sql_toolkit
 from any_chatbot.prompts import system_message
 from any_chatbot.utils import load_environ_vars
 
+logger = logging.getLogger(__name__)
+
 BASE = Path(__file__).parent.parent.parent
 
 
@@ -22,7 +24,7 @@ def parse_args() -> argparse.Namespace:
         "--ask",
         type=str,
         default=(
-            "What kinds (text docs, images, or excel sheets) are available in the documents I have provided to you?\n\n"
+            "What kinds (text docs, images, or excel/CSV sheets) are available in the documents I have provided to you?\n\n"
         ),
         help="Your input prompt to the agent.",
     )
@@ -34,7 +36,7 @@ def parse_args() -> argparse.Namespace:
     p.add_argument(
         "--thread_id",
         type=str,
-        default=str(random.random()),
+        default="thread123",
         help="Your conversation history ID. Different IDs save different chat histories with agent.",
     )
     p.add_argument(
@@ -53,6 +55,7 @@ def parse_args() -> argparse.Namespace:
 
 
 def main() -> None:
+    logging.basicConfig(level=logging.INFO)
     cfg = parse_args()
     load_environ_vars()
     # INDEXING
