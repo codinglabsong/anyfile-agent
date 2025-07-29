@@ -52,7 +52,7 @@ def load_and_split_text_docs(data_dir):
     print(f"Split text chunks: {len(text_chunks)}")
     # tag
     for chunk in text_chunks:
-        chunk.metadata["source_type"] = "text"
+        chunk.metadata["source_type"] = "text_chunk"
 
     return text_chunks
 

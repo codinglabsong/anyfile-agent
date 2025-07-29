@@ -57,7 +57,7 @@ config = {"configurable": {"thread_id": random.random()}}
 # )
 
 input_message = (
-    "How many employees were working for Nike? The informaton is in the pdf.\n\n"
+    "What kinds (images, text docs, or excel sheets) are available in the documents I have provided to you? Use the functional call to retrieve information for each type first.\n\n"
     # "What colums does the excel have? once you found the answer, tell me there types too.\n\n"
     # "Once you have that answer, I want you to calculate the median for each column.\n\n"
     "When you don't know while files the user is talking about, use the functional call to retrieve what data is available with a general prompt.\n\n"
