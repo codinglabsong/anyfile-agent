@@ -16,21 +16,15 @@ BASE = Path(__file__).parent.parent.parent
 
 
 def parse_args() -> argparse.Namespace:
-    """Parse command-line arguments for training and evaluation."""
     p = argparse.ArgumentParser()
 
     p.add_argument(
         "--ask",
         type=str,
         default=(
-            "What kinds (images, text docs, or excel sheets) are available in the documents I have provided to you? Use the functional call to retrieve information for each type first.\n\n"
-            # "What colums does the excel have? once you found the answer, tell me there types too.\n\n"
-            # "Once you have that answer, I want you to calculate the median for each column.\n\n"
-            "When you don't know while files the user is talking about, use the functional call to retrieve what data is available with a general prompt.\n\n"
-            "You can refine your semantic search queries and try multiple times with different queries until you resonably determine the data is not available on the given documents.\n\n"
-            "Base your answers only on the retrieved information thorugh the functional call you have. You can retreive MULTIPLE TIMES"
+            "What kinds (text docs, images, or excel sheets) are available in the documents I have provided to you?\n\n"
         ),
-        help="Your input to agent",
+        help="Your input prompt to the agent.",
     )
     p.add_argument(
         "--load_data",
@@ -41,19 +35,19 @@ def parse_args() -> argparse.Namespace:
         "--thread_id",
         type=str,
         default=str(random.random()),
-        help="Your conversation history ID. Different IDs save different chat histories with agent",
+        help="Your conversation history ID. Different IDs save different chat histories with agent.",
     )
     p.add_argument(
         "--data_dir",
         type=Path,
         default=BASE / "data",
-        help="Path to data dir where your files are uploaded",
+        help="Path to data dir where your files are uploaded.",
     )
     p.add_argument(
         "--database_dir",
         type=Path,
         default=BASE / "data" / "generated_db" / "csv_excel_to_db.duckdb",
-        help="Path to database dir where the sql version of CSV/EXCEL files are stored",
+        help="Path to database dir where the sql version of CSV/EXCEL files are stored.",
     )
     return p.parse_args()
 
