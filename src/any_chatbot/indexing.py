@@ -38,7 +38,7 @@ def load_and_split_text_docs(data_dir):
         glob=globs,
         loader_cls=UnstructuredFileLoader,
     )
-    print(f"Loading files from {data_dir}")
+    print(f"Loading text files from {data_dir}")
     docs = loader.load()
     print(f"Loaded {len(docs)} text files")
     # split
@@ -204,47 +204,3 @@ def embed_and_index_all_docs(
 
     vector_store.add_documents(text_chunks + image_text_docs + summary_cards)
     return embeddings, vector_store
-
-
-# def index_text_docs(
-#     data_pth: Path = DATA,
-# ):
-#     embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001")
-#     vector_store = InMemoryVectorStore(embeddings)
-
-#     # Load the text documents
-#     loader = DirectoryLoader(
-#         str(data_pth),
-#         glob=[
-#             "**/*.pdf",
-#             "**/*.docx",
-#             "**/*.pptx",
-#             "**/*.md",
-#             "**/*.html",
-#             "**/*.txt",
-#             "**/*.png",
-#             "**/*.jpg",
-#             "**/*.jpeg",
-#             "**/*.tiff",
-#         ],
-#         loader_cls=UnstructuredFileLoader,
-#     )
-#     print(f"Loading files from {data_pth}")
-#     docs = loader.load()
-#     print(f"Loaded {len(docs)} files")
-
-#     # Split the texts
-#     text_splitter = RecursiveCharacterTextSplitter(
-#         chunk_size=1000,
-#         chunk_overlap=200,
-#         add_start_index=True,
-#         separators=["\n\n", "\n", " ", ""],
-#     )
-#     all_splits = text_splitter.split_documents(docs)
-#     print(len(all_splits))
-
-#     # index the docs
-#     ids = vector_store.add_documents(documents=all_splits)
-#     print(len(ids))
-
-#     return embeddings, vector_store
