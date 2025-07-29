@@ -1,5 +1,6 @@
 import os
 import re
+import logging
 import pandas as pd
 import duckdb
 import shutil
@@ -13,6 +14,7 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_core.documents import Document
 
 load_dotenv()
+logger = logging.getLogger(__name__)
 
 BASE = Path(__file__).parent.parent.parent
 DATA = BASE / "data"
@@ -30,18 +32,18 @@ def load_and_split_text_docs(data_dir):
     ]
     # gaudrail if no files matched
     if not any(next(data_dir.rglob(p), None) for p in globs):
-        print(f"No text files found under {data_dir}; skipping.")
+        logger.info(f"No text files found under {data_dir}; skipping.")
         return text_chunks
 
-    print(f"Detected text files under {data_dir}")
+    logger.info(f"Detected text files under {data_dir}")
     loader = DirectoryLoader(
         str(data_dir),
         glob=globs,
         loader_cls=UnstructuredFileLoader,
     )
-    print(f"Loading text files from {data_dir}")
+    logger.info(f"Loading text files from {data_dir}")
     docs = loader.load()
-    print(f"Loaded {len(docs)} text files")
+    logger.info(f"Loaded {len(docs)} text files")
     # split
     text_splitter = RecursiveCharacterTextSplitter(
         chunk_size=1000,
@@ -50,7 +52,7 @@ def load_and_split_text_docs(data_dir):
         separators=["\n\n", "\n", " ", ""],
     )
     text_chunks = text_splitter.split_documents(docs)
-    print(f"Split text chunks: {len(text_chunks)}")
+    logger.info(f"Split text chunks: {len(text_chunks)}")
     # tag
     for chunk in text_chunks:
         chunk.metadata["source_type"] = "text_chunk"
@@ -68,18 +70,18 @@ def load_image_docs_as_text(data_dir):
     ]
     # gaudrail if no files matched
     if not any(next(data_dir.rglob(p), None) for p in globs):
-        print(f"No images found under {data_dir}; skipping.")
+        logger.info(f"No images found under {data_dir}; skipping.")
         return image_text_docs
 
-    print(f"Detected images under {data_dir}")
+    logger.info(f"Detected images under {data_dir}")
     loader = DirectoryLoader(
         str(data_dir),
         glob=globs,
         loader_cls=UnstructuredFileLoader,
     )
-    print(f"Loading images from {data_dir}")
+    logger.info(f"Loading images from {data_dir}")
     image_text_docs = loader.load()
-    print(f"Loaded {len(image_text_docs)} image files")
+    logger.info(f"Loaded {len(image_text_docs)} image files")
     # tag
     for img in image_text_docs:
         img.metadata["source_type"] = "image_text"
@@ -103,9 +105,9 @@ def build_duckdb_and_summary_cards(
     # skip if there are no .csv/.xlsx/.xls files
     patterns = ("*.csv", "*.xlsx", "*.xls")
     if not any(next(data_dir.rglob(p), None) for p in patterns):
-        print(f"No CSV or Excel files found under {data_dir}; skipping.")
+        logger.info(f"No CSV or Excel files found under {data_dir}; skipping.")
         return summary_cards
-    print(f"Detected CSV or Excel files under {data_dir}")
+    logger.info(f"Detected CSV or Excel files under {data_dir}")
     # ensure the DB folder exists
     os.makedirs(db_path.parent, exist_ok=True)
     # empty the entire DB
@@ -129,7 +131,7 @@ def build_duckdb_and_summary_cards(
             try:
                 xls = pd.ExcelFile(fp)  # lists sheet names
             except Exception as e:
-                print(f"Skip {fp.name}: {e}")
+                logger.info(f"Skip {fp.name}: {e}")
                 continue
 
             # One table per sheet
@@ -137,7 +139,7 @@ def build_duckdb_and_summary_cards(
                 try:
                     df = pd.read_excel(fp, sheet_name=sheet)
                 except Exception as e:
-                    print(f"Skip {fp.name}:{sheet}: {e}")
+                    logger.info(f"Skip {fp.name}:{sheet}: {e}")
                     continue
 
                 tmp_name = f"_tmp_{_tbl(fp.stem)}_{_tbl(sheet)}"
@@ -153,7 +155,7 @@ def build_duckdb_and_summary_cards(
 
         for fp in data_dir.rglob("*.xls"):
             # .xls not supported by DuckDB
-            print(f"Skip {fp.name}: .xls not supported by DuckDB.")
+            logger.info(f"Skip {fp.name}: .xls not supported by DuckDB.")
 
         # build summary cards from DuckDB
         tables = [r[0] for r in con.execute("SHOW TABLES").fetchall()]
@@ -203,11 +205,11 @@ def embed_and_index_all_docs(
         vector_store = FAISS.load_local(
             index_path, embeddings, allow_dangerous_deserialization=True
         )
-        print("Loaded existing FAISS index and database.")
+        logger.info("Loaded existing FAISS index and database.")
     else:
         # delete old FAISS index if it exists
         if index_path.exists():
-            print("Reseting previous index...")
+            logger.info("Reseting previous index...")
             shutil.rmtree(index_path)
 
         # LOAD AND SPLIT TEXT DOCS
@@ -222,6 +224,6 @@ def embed_and_index_all_docs(
             text_chunks + image_text_docs + summary_cards, embeddings
         )
         vector_store.save_local(index_path)
-        print("Built and saved new FAISS index.")
+        logger.info("Built and saved new FAISS index.")
 
     return embeddings, vector_store

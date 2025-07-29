@@ -1,7 +1,6 @@
 import argparse
 import random
 import sqlite3
-from dotenv import load_dotenv
 from pathlib import Path
 
 from langgraph.prebuilt import create_react_agent
@@ -12,8 +11,6 @@ from any_chatbot.indexing import embed_and_index_all_docs
 from any_chatbot.tools import initialize_retrieve_tool, initialize_sql_toolkit
 from any_chatbot.prompts import system_message
 from any_chatbot.utils import load_environ_vars
-
-load_dotenv()
 
 BASE = Path(__file__).parent.parent.parent
 
