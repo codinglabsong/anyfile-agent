@@ -23,5 +23,8 @@ old-data/
 # outputs
 outputs/
 
+# gradio temp
+tmp/
+
 # venv
 .venv
