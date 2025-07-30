@@ -1,10 +1,10 @@
 # Anyfile-Agent
-Anyfile-Agent lets you query your own documents using natural‑language. It indexes a folder of files, converts CSV and Excel sheets into a DuckDB database, and performs semantic search with Google Gemini embeddings. An interactive LLM agent built with LangGraph combines retrieval and SQL queries so you can "chat" with your data.
+Anyfile-Agent lets you query your own documents using natural language. It indexes a folder of files, converts CSV and Excel sheets into a DuckDB database, and performs semantic search via vector retrieval. Built with LangChain/LangGraph, this interactive LLM agent combines RAG‑based retrieval and SQL querying so you can “chat” with your data.
 
 ## Features
 - **Multi-format ingestion** – Images are processed through OCR so their text is indexed. PDFs, Word docs, PowerPoint, Markdown, HTML, and plain text are split into searchable chunks. 
 - **Data summarization** – CSV and Excel files are loaded into DuckDB tables. Summary cards for each table are added to the vector index.
-- **Embeddings & retrieval** – Documents are embedded with `GoogleGenerativeAIEmbeddings` and stored in a FAISS index for fast semantic search.
+- **Embeddings & retrieval** – Documents are embedded with `GoogleGenerativeAIEmbeddings` and stored in a FAISS vector database for fast top-k semantic search.
 - **SQL integration** – The agent can issue DuckDB queries over your uploaded spreadsheets. Only `SELECT` and `PRAGMA` statements are allowed for safety.
 - **Persistent conversations** – The agent saves its conversation history with you to SQLite with a `thread_id` so that you can resume or switch between chats.
 - **Gradio App** – Run a user-friendly interface for interactive sessions.
