@@ -51,6 +51,12 @@ def parse_args() -> argparse.Namespace:
         default=BASE / "data" / "generated_db" / "csv_excel_to_db.duckdb",
         help="Path to database dir where the sql version of CSV/EXCEL files are stored.",
     )
+    p.add_argument(
+        "--llm_name",
+        type=str,
+        default="gemini-2.5-flash",
+        help="LLM to use for the current session. More capable models perform better. Choose from models provided by 'google_genai'",
+    )
     return p.parse_args()
 
 
@@ -64,7 +70,7 @@ def main() -> None:
     )
 
     # BUILD LLM
-    llm = init_chat_model("gemini-2.0-flash", model_provider="google_genai")
+    llm = init_chat_model(cfg.llm_name, model_provider="google_genai")
 
     # LOAD TOOLS
     retrieve_tool = initialize_retrieve_tool(vector_store)
