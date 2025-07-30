@@ -51,7 +51,7 @@ python app.py
 
 ## Example Results
 ### User Friendly Gradio Interface
-![Gradio Interface Example](assets/gradio.png)
+![Gradio Interface Example](assets/gradio2.png)
 
 ### Multi-Step Reasoning with Tool Use
 <div style="max-height:400px; overflow-y:auto; border:1px solid #ccc; padding:8px;">
