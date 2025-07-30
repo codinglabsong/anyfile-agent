@@ -6,6 +6,7 @@ Anyfile-Agent lets you query your own documents using natural language. It index
 - **Data summarization** – CSV and Excel files are loaded into DuckDB tables. Summary cards for each table are added to the vector index.
 - **Embeddings & retrieval** – Documents are embedded with `GoogleGenerativeAIEmbeddings` and stored in a FAISS vector database for fast top-k semantic search.
 - **SQL integration** – The agent can issue DuckDB queries over your uploaded spreadsheets. Only `SELECT` and `PRAGMA` statements are allowed for safety.
+- **Prompt engineering** – System prompts and tool descriptions were iteratively tuned to guide the RAG‑based agent through schema inspection, query planning, and result synthesis.
 - **Persistent conversations** – The agent saves its conversation history with you to SQLite with a `thread_id` so that you can resume or switch between chats.
 - **Gradio App** – Run a user-friendly interface for interactive sessions.
 - **Developer Tools & CI** – Linting with ruff and black, unit tests with pytest, end‐to‐end smoke tests in GitHub Actions.
