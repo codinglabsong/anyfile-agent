@@ -1,3 +1,5 @@
+"""Data-ingestion pipeline: load docs, build DuckDB tables, create FAISS index."""
+
 import os
 import re
 import logging
@@ -6,6 +8,7 @@ import duckdb
 import shutil
 from dotenv import load_dotenv
 from pathlib import Path
+from typing import List, Tuple
 
 from langchain_community.vectorstores import FAISS
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
@@ -20,7 +23,8 @@ BASE = Path(__file__).parent.parent.parent
 DATA = BASE / "data"
 
 
-def load_and_split_text_docs(data_dir):
+def load_and_split_text_docs(data_dir: Path) -> List[Document]:
+    """Load PDFs, DOCX, PPTX, etc. and split into chunks suitable for embeddings."""
     text_chunks = []
     globs = [
         "**/*.pdf",
@@ -60,7 +64,8 @@ def load_and_split_text_docs(data_dir):
     return text_chunks
 
 
-def load_image_docs_as_text(data_dir):
+def load_image_docs_as_text(data_dir: Path) -> List[Document]:
+    """Run OCR on images and return one Document per image."""
     image_text_docs = []
     globs = [
         "**/*.png",
@@ -90,7 +95,7 @@ def load_image_docs_as_text(data_dir):
 
 
 def _tbl(name: str) -> str:
-    """make a safe SQL table name"""
+    """Sanitize an arbitrary string so it can be used as a SQL table name."""
     name = re.sub(r"[^0-9a-zA-Z_]+", "_", name).strip("_")
     if not name or name[0].isdigit():
         name = f"t_{name}"
@@ -101,6 +106,7 @@ def build_duckdb_and_summary_cards(
     data_dir: Path,
     db_path: Path,
 ) -> list[Document]:
+    """Create DuckDB tables for CSV/XLSX files and return vector-searchable summary cards."""
     summary_cards = []
     # skip if there are no .csv/.xlsx/.xls files
     patterns = ("*.csv", "*.xlsx", "*.xls")
@@ -197,7 +203,8 @@ def embed_and_index_all_docs(
     db_path: Path = DATA / "generated_db" / "csv_excel_to_db.duckdb",
     index_path: Path = DATA / "generated_db" / "faiss_index",
     load_data: bool = False,
-):
+) -> Tuple[GoogleGenerativeAIEmbeddings, FAISS]:
+    """Return (embeddings, vector_store). Build or load FAISS & DuckDB as needed."""
     # load embeedings and vector store
     embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001")
 

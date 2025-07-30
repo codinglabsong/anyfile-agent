@@ -1,3 +1,5 @@
+"""CLI entry-point for running Anyfile-Agent in streaming mode."""
+
 import argparse
 import sqlite3
 import logging
@@ -18,6 +20,7 @@ BASE = Path(__file__).parent.parent.parent
 
 
 def parse_args() -> argparse.Namespace:
+    """Parse command-line options for the agent."""
     p = argparse.ArgumentParser()
 
     p.add_argument(
@@ -61,6 +64,7 @@ def parse_args() -> argparse.Namespace:
 
 
 def main() -> None:
+    """Entry-point invoked by `python agent.py`."""
     logging.basicConfig(level=logging.INFO)
     cfg = parse_args()
     load_environ_vars()

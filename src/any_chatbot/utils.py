@@ -1,3 +1,5 @@
+"""Small utility helpers not tied to LangChain."""
+
 import getpass
 import os
 

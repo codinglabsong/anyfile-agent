@@ -1,3 +1,5 @@
+"""Gradio-based web app for Anyfile-Agent: upload documents, index them, and chat interactively."""
+
 import atexit
 import asyncio
 import gc
@@ -25,7 +27,10 @@ TMP_DIR.mkdir(exist_ok=True)
 
 
 class Session:
+    """Session state for file uploads, indexing, and chat history."""
+
     def __init__(self):
+        """Initialize session IDs, paths, and database connections."""
         self.sid = uuid.uuid4().hex
         self.db_path = TMP_DIR / "csv_excel_to_db.duckdb"
         self.index_path = TMP_DIR / "faiss_index"
@@ -35,6 +40,7 @@ class Session:
         self.sql_engines: List = []
 
     def cleanup(self):
+        """Dispose SQL engines, close history DB, reset agent, and remove tmp directory."""
         # dispose any SQLAlchemy/SQL-toolkit engines
         for eng in self.sql_engines:
             try:
@@ -60,10 +66,12 @@ sess = Session()
 # shutdown hook that is called when session ends
 @atexit.register
 def _purge_all():
+    """Cleanup session data on program exit."""
     sess.cleanup()
 
 
 def _safe_copy(src: Path, dst_dir: Path):
+    """Copy a file to dst_dir, avoiding name collisions by appending a random suffix."""
     dst = dst_dir / src.name
     if dst.exists():
         dst = dst.with_name(f"{dst.stem}_{uuid.uuid4().hex[:4]}{dst.suffix}")
@@ -72,6 +80,14 @@ def _safe_copy(src: Path, dst_dir: Path):
 
 # upload & sync
 def cb_upload_and_sync(files: List[gr.File]) -> Generator[Tuple[str, list], None, None]:
+    """Handle uploaded files: copy to temp, index docs, build agent, and yield status updates.
+
+    Args:
+        files: List of uploaded files from the Gradio interface.
+
+    Yields:
+        Tuples of (status_message, chat_history).
+    """
     # GUARDRAIL FOR EMPTY FILES
     if not files:
         yield "⚠️ No files selected.", []
@@ -132,6 +148,15 @@ def cb_upload_and_sync(files: List[gr.File]) -> Generator[Tuple[str, list], None
 
 # chat
 def cb_chat(hist: List[dict], msg: str) -> Tuple[List[dict], str]:
+    """Handle user messages: stream agent response and update conversation history.
+
+    Args:
+        hist: Conversation history as a list of role/content dicts.
+        msg: New user message.
+
+    Returns:
+        A tuple of (updated_history, clear_input_str).
+    """
     if sess.agent is None:
         hist.append(
             {

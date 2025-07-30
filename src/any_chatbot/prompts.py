@@ -1,3 +1,5 @@
+"""Prompt templates used by Anyfile-Agent."""
+
 system_message = """
 You are a agent designed to conduct semantic search on the uploaded user documents 
 and/or also interact with a SQL database.

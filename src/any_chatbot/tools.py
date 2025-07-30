@@ -1,3 +1,5 @@
+"""Utility helpers that turn a FAISS vector store or DuckDB database into LangChain tools usable by the agent."""
+
 from typing import Tuple, List, Literal
 from pathlib import Path
 
@@ -12,6 +14,15 @@ DATA = BASE / "data"
 
 
 def initialize_retrieve_tool(vector_store: VectorStore):
+    """Return a LangChain `@tool` that performs semantic search.
+
+    Args:
+        vector_store: A pre-built FAISS (or compatible) vector store.
+
+    Returns:
+        The decorated `retrieve` function ready to be passed into an agent.
+    """
+
     @tool(
         description=(
             """
@@ -41,7 +52,14 @@ def initialize_retrieve_tool(vector_store: VectorStore):
 
 
 def is_safe_sql(query: str) -> bool:
-    """Filters out destructive sql queries"""
+    """Reject queries that contain DML/DDL keywords.
+
+    Args:
+        query: Arbitrary SQL supplied by the LLM.
+
+    Returns:
+        True if the query looks safe (SELECT/PRAGMA), else False.
+    """
     forbidden = ["insert", "update", "delete", "drop", "alter", "create", "replace"]
     # Make sure to only block whole words (e.i., don't block 'updated_at')
     return not any(f" {word} " in f" {query.lower()} " for word in forbidden)
@@ -51,6 +69,15 @@ def initialize_sql_toolkit(
     llm,
     db_path: Path = DATA / "generated_db" / "csv_excel_to_db.duckdb",
 ):
+    """Wrap DuckDB in a LangChain `SQLDatabaseToolkit` with a safety filter.
+
+    Args:
+        llm: The chat model that will power SQL-aware tools.
+        db_path: Location of the DuckDB file created during indexing.
+
+    Returns:
+        A list of LangChain tools for schema look-up and SELECT queries.
+    """
     db = SQLDatabase.from_uri(f"duckdb:///{db_path}")
 
     # Monkey-path the run method to include safety filter

@@ -1,14 +1,18 @@
+"""Unit tests for Anyfile-Agent modules: indexing."""
+
 from any_chatbot.indexing import _tbl, build_duckdb_and_summary_cards
 from pathlib import Path
 
 
 def test_tbl_cleaning():
+    """Test that _tbl sanitizes arbitrary names into valid SQL table identifiers."""
     assert _tbl("my table!") == "my_table"
     assert _tbl("123name") == "t_123name"
     assert _tbl("##$") == "t_"
 
 
 def test_build_duckdb_and_summary_cards_csv(tmp_path: Path):
+    """Test that build_duckdb_and_summary_cards creates a DuckDB table and returns a summary card for a CSV file."""
     csv_path = tmp_path / "data.csv"
     csv_path.write_text("a,b\n1,2\n3,4")
     db_path = tmp_path / "db.duckdb"

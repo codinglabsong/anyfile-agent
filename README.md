@@ -1,5 +1,5 @@
 # Anyfile-Agent
-Anyfile-Agent lets you query your own documents using natural language. It indexes a folder of files, converts CSV and Excel sheets into a DuckDB database, and performs semantic search via vector retrieval. Built with LangChain/LangGraph, this interactive LLM agent combines RAG‑based retrieval and SQL querying so you can “chat” with your data.
+Anyfile-Agent lets you query your own documents using natural language. It indexes a folder of files, converts CSV and Excel sheets into a DuckDB database, and performs semantic search via vector retrieval. Built with LangChain/LangGraph, this interactive LLM agent combines RAG-based retrieval and SQL querying so you can “chat” with your data.
 
 ## Features
 - **Multi-format ingestion** – Images are processed through OCR so their text is indexed. PDFs, Word docs, PowerPoint, Markdown, HTML, and plain text are split into searchable chunks. 
@@ -50,7 +50,7 @@ python app.py
    * For best results with XLSX, use a simple tabular layout—one header row, uniform columns, and no merged cells or custom formatting. You can have multiple sheets.
 
 ## Example Results
-### Multi‑Step Reasoning with Tool Use
+### Multi-Step Reasoning with Tool Use
 <div style="max-height:400px; overflow-y:auto; border:1px solid #ccc; padding:8px;">
   <pre><code class="language-bash">
 ================================ Human Message =================================
