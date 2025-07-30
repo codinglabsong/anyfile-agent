@@ -50,6 +50,9 @@ python app.py
    * For best results with XLSX, use a simple tabular layout—one header row, uniform columns, and no merged cells or custom formatting. You can have multiple sheets.
 
 ## Example Results
+### User Friendly Gradio Interface
+![Gradio Interface Example](assets/gradio.png)
+
 ### Multi-Step Reasoning with Tool Use
 <div style="max-height:400px; overflow-y:auto; border:1px solid #ccc; padding:8px;">
   <pre><code class="language-bash">
@@ -202,9 +205,6 @@ Name: sql_db_query
 The total customer count for Solomon Islands, Netherlands, Sri Lanka, United Arab Emirates, and Belarus is 12.
   </code></pre>
 </div>
-
-### User Friendly Gradio Interface
-![Gradio Interface Example](assets/gradio.png)
 
 ## Code Hygiene Tools & Testing
 Run formatting checks and unit tests with:
