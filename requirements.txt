@@ -13,3 +13,4 @@ duckdb-engine
 openpyxl
 faiss-cpu
 langgraph-checkpoint-sqlite
+gradio
