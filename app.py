@@ -180,7 +180,7 @@ def cb_chat(hist: List[dict], msg: str) -> Tuple[List[dict], str]:
 
 # UI
 with gr.Blocks(theme="default") as demo:
-    gr.Markdown("## Learn-Anything Chatbot Agent - Upload and Ask About Your Files")
+    gr.Markdown("## Anyfile-Agent - Upload files and ask about their content!")
     with gr.Row():
         file_box = gr.Files(file_count="multiple", label="Files to upload")
         sync_btn = gr.Button("Upload & Sync")
